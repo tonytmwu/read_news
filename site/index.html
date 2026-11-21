@@ -1,0 +1,797 @@
+<title>Edie 的讀報小站</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Nunito:wght@400;700;800&display=swap">
+<style>
+/* Layout: one calm reading column (max 760px) on soft axolotl pink; Liu-liu the axolotl guides each step. */
+:root {
+  --bg: #FFF5F8;
+  --surface: #FFFFFF;
+  --surface-2: #FCEAF0;
+  --ink: #3A2430;
+  --muted: #7E5F6E;
+  --line: #F4D7E2;
+  --axo: #FAB8CF;
+  --gill: #EC7FA5;
+  --blush: #F28DB0;
+  --accent: #C24E7A;
+  --on-accent: #FFFFFF;
+  --accent-soft: #FBDDE8;
+  --sun: #FFD36B;
+  --sun-soft: #FFF3D9;
+  --ok: #2F9A63;
+  --ok-soft: #DDF3E6;
+  --no: #D9694C;
+  --no-soft: #FBE4DD;
+  --font-display: "Huninn", "Nunito", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --font-body: "Nunito", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --radius: 18px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #22151B; --surface: #2E1C25; --surface-2: #3A2430; --ink: #F8E9EF; --muted: #C8A8B6; --line: #4A2F3B;
+    --axo: #F3A2BF; --gill: #E8789F; --blush: #E57FA4;
+    --accent: #F29BBB; --on-accent: #3A1525; --accent-soft: #512A3B;
+    --sun: #F2C55A; --sun-soft: #3D3020; --ok: #6ED39A; --ok-soft: #1E3F2E; --no: #F09A80; --no-soft: #47281F;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #22151B; --surface: #2E1C25; --surface-2: #3A2430; --ink: #F8E9EF; --muted: #C8A8B6; --line: #4A2F3B;
+    --axo: #F3A2BF; --gill: #E8789F; --blush: #E57FA4;
+    --accent: #F29BBB; --on-accent: #3A1525; --accent-soft: #512A3B;
+    --sun: #F2C55A; --sun-soft: #3D3020; --ok: #6ED39A; --ok-soft: #1E3F2E; --no: #F09A80; --no-soft: #47281F;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+img[src^="liu"] { object-fit: contain; display: block; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 18px; line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px 48px;
+}
+.wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+#app { display: flex; flex-direction: column; gap: 28px; }
+.grid, .levels, .stats { margin: 0; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; line-height: 1.35; text-wrap: balance; margin: 0; }
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.35rem; }
+h3 { font-size: 1.12rem; }
+p { margin: 0; }
+a { color: var(--accent); }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; border-radius: 8px; }
+
+/* top bar */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+.brand img { width: 56px; height: 53px; flex: none; }
+.brand b { font-family: var(--font-display); font-weight: 400; font-size: 1.3rem; }
+.nav { display: flex; gap: 8px; flex-wrap: wrap; }
+.nav a { text-decoration: none; padding: 8px 14px; border-radius: 999px; color: var(--muted); font-weight: 700; font-size: 0.95rem; }
+.nav a[aria-current="page"] { background: var(--accent-soft); color: var(--ink); }
+
+.note { font-size: 0.95rem; color: var(--muted); background: var(--surface-2); padding: 10px 14px; border-radius: 12px; }
+.note.warn { background: var(--sun-soft); color: var(--ink); }
+
+/* hello */
+.hello { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius); padding: 18px; }
+.hello img { width: 120px; height: 113px; }
+.hello .say { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.bubble { background: var(--surface-2); border-radius: 16px; padding: 10px 14px; font-size: 1rem; }
+.progress { display: flex; flex-direction: column; gap: 6px; }
+.bar { height: 14px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 999px; transition: width .4s; }
+.progress small { color: var(--muted); font-size: 0.9rem; }
+
+/* cards */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 18px; }
+.card { display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius); padding: 16px; min-width: 0; transition: transform .15s, border-color .15s; }
+.card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.card .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.card h3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.chip { font-size: 0.82rem; font-weight: 800; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); white-space: nowrap; }
+.status { font-size: 0.85rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.status.done { color: var(--ok); }
+.status.doing { color: var(--ink); }
+
+/* article */
+.back { font-weight: 700; text-decoration: none; font-size: 0.95rem; }
+.head { display: flex; flex-direction: column; gap: 12px; }
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.steps button { border: 2px solid var(--line); background: var(--surface); border-radius: 14px; padding: 8px 4px; min-height: 52px; font-weight: 800; font-size: 0.92rem; color: var(--muted); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; line-height: 1.25; }
+.steps button small { font-weight: 700; font-size: 0.75rem; }
+.steps button[aria-current="step"] { border-color: var(--accent); color: var(--ink); background: var(--accent-soft); }
+.steps button.ok small { color: var(--ok); }
+.panel { background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius); padding: 28px 24px; display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.guide { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; }
+.guide img { width: 72px; height: 68px; }
+textarea { width: 100%; min-height: 120px; font: inherit; font-size: 1.05rem; color: var(--ink); background: var(--bg); border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; resize: vertical; }
+textarea:focus { border-color: var(--accent); outline: none; }
+.vocab { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 12px; }
+.vocab div { background: var(--surface-2); border-radius: 14px; padding: 10px 14px; display: flex; flex-direction: column; gap: 2px; }
+.vocab b { font-family: var(--font-display); font-weight: 400; font-size: 1.1rem; }
+.vocab span { font-size: 0.95rem; color: var(--muted); }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.btn { border: none; background: var(--accent); color: var(--on-accent); font-weight: 800; border-radius: 14px; padding: 12px 22px; min-height: 52px; font-size: 1.05rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+.btn.ghost { background: transparent; color: var(--accent); border: 2px solid var(--accent); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.card.who { font: inherit; text-align: left; cursor: pointer; }
+.card.who h3 { font-size: 1.4rem; }
+.card.who.current { border-color: var(--accent); background: var(--accent-soft); }
+#new-reader { font: inherit; padding: 10px 14px; border: 2px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); min-width: 0; flex: 1 1 160px; }
+.card .src { color: var(--muted); font-size: 0.85rem; }
+.tip { font-size: 0.95rem; background: var(--sun-soft); border-radius: 12px; padding: 10px 14px; }
+
+/* easy reading */
+.easy { display: flex; flex-direction: column; gap: 14px; font-size: 1.12rem; line-height: 1.8; }
+.easy h3 { font-size: 1.3rem; }
+.gloss { border: none; background: none; padding: 0; font: inherit; color: inherit; text-decoration: underline 2px dotted var(--gill); text-underline-offset: 4px; }
+.gloss[aria-expanded="true"] { background: var(--sun-soft); border-radius: 6px; }
+.gloss-pop { display: inline-block; margin: 0 4px; padding: 0 8px; border-radius: 8px; background: var(--axo); color: #3A1D2A; font-size: 0.9rem; font-family: var(--font-body); }
+
+/* quiz */
+.q { display: flex; flex-direction: column; gap: 14px; padding-top: 28px; border-top: 2px dashed var(--line); }
+.q:first-of-type { border-top: none; padding-top: 0; }
+.q .meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.lv { font-size: 0.78rem; font-weight: 800; padding: 2px 9px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+.q p.stem { font-weight: 700; }
+.opts { display: flex; flex-direction: column; gap: 8px; }
+.opt { display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center; text-align: left; border: 2px solid var(--line); background: var(--bg); border-radius: 14px; padding: 10px 12px; min-height: 52px; font-size: 1rem; line-height: 1.5; }
+.opt .k { width: 30px; height: 30px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; font-weight: 800; font-size: 0.9rem; }
+.opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+.opt.picked .k { background: var(--accent); color: var(--on-accent); }
+.opt.right { border-color: var(--ok); background: var(--ok-soft); }
+.opt.right .k { background: var(--ok); color: var(--surface); }
+.opt.wrong { border-color: var(--no); background: var(--no-soft); text-decoration: line-through; text-decoration-color: var(--no); }
+.opt.wrong .k { background: var(--no); color: var(--surface); }
+.opt:disabled { cursor: default; }
+.opt .mark { font-weight: 800; font-size: 0.85rem; }
+.explain { background: var(--surface-2); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; font-size: 0.98rem; }
+.explain .where { color: var(--muted); font-size: 0.9rem; }
+.hint { background: var(--sun-soft); border-radius: 14px; padding: 10px 14px; font-size: 0.98rem; }
+.score { font-family: var(--font-display); font-size: 1.15rem; }
+
+/* open answer */
+.reply { display: flex; flex-direction: column; gap: 14px; }
+.mine { align-self: flex-end; max-width: 92%; background: var(--accent-soft); border-radius: 16px 16px 4px 16px; padding: 10px 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.liu { display: grid; grid-template-columns: 48px 1fr; gap: 8px; align-items: start; max-width: 96%; }
+.liu img { width: 48px; height: 45px; margin-top: 4px; }
+.liu div { background: var(--surface-2); border-radius: 16px 16px 16px 4px; padding: 10px 14px; overflow-wrap: anywhere; }
+.liu.thinking div { color: var(--muted); }
+.celebrate { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 8px 0; }
+.celebrate img { width: 140px; height: 132px; animation: hop 1s ease-in-out 2; }
+@keyframes hop { 0%,100% { transform: translateY(0) } 40% { transform: translateY(-14px) rotate(-4deg) } 70% { transform: translateY(0) rotate(3deg) } }
+@media (prefers-reduced-motion: reduce) { .celebrate img { animation: none; } .card, .bar > i { transition: none; } }
+
+/* footprints */
+.levels { display: flex; flex-direction: column; gap: 16px; }
+.level { display: grid; grid-template-columns: minmax(0, 9em) 1fr 4.5em; gap: 10px; align-items: center; }
+.level b { font-family: var(--font-display); font-weight: 400; }
+.level small { display: block; color: var(--muted); font-size: 0.78rem; line-height: 1.2; }
+.level .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 800; }
+.level .bar { height: 18px; }
+.level .bar > i { background: var(--gill); }
+.stats { display: flex; gap: 12px; flex-wrap: wrap; }
+.stat { flex: 1 1 140px; background: var(--surface-2); border-radius: 14px; padding: 12px 14px; }
+.stat b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: 0.9rem; }
+details.rec { border: 2px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+details.rec > summary { list-style: none; cursor: pointer; padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+details.rec > summary::-webkit-details-marker { display: none; }
+details.rec > summary .t { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+details.rec > summary .t span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+details.rec .body { padding: 4px 18px 20px; display: flex; flex-direction: column; gap: 16px; }
+details.rec .body h4 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 1rem; color: var(--muted); }
+.miss { background: var(--bg); border-radius: 12px; padding: 10px 12px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 2px; }
+details.ref { background: var(--bg); border-radius: 12px; padding: 8px 12px; font-size: 0.92rem; }
+details.ref summary { cursor: pointer; color: var(--muted); font-weight: 700; }
+details.ref p { white-space: pre-wrap; margin-top: 6px; }
+.empty { color: var(--muted); font-size: 0.95rem; }
+footer { color: var(--muted); font-size: 0.85rem; text-align: center; }
+@media (max-width: 520px) {
+  body { font-size: 17px; }
+  .hello { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .steps button { font-size: 0.82rem; }
+  .level { grid-template-columns: 1fr 3.5em; }
+  .level .bar { grid-column: 1 / -1; grid-row: 2; }
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="#home"><img src="liu.png" alt=""><b id="brand-name">讀報小站</b></a>
+    <nav class="nav" id="nav">
+      <a href="#home" data-nav="home">文章</a>
+      <a href="#footprints" data-nav="footprints">我的閱讀足跡</a>
+      <a href="#who" data-nav="who" id="who-link">換人讀</a>
+    </nav>
+  </header>
+  <div id="banner" hidden></div>
+  <main id="app"><p class="note">六六正在把文章搬出來⋯⋯</p></main>
+  <footer>文章來自《少年報導者》，題目和簡易英文版由 Claude 撰寫。</footer>
+</div>
+
+<script>
+(() => {
+  const S = { content: null, records: {}, readers: [{ id: "edie", name: "Edie" }], reader: null, unsub: null, db: null, sample: null, downloads: null, dbState: "loading", ui: {} };
+  const app = document.getElementById("app");
+  const banner = document.getElementById("banner");
+  const KEYS = ["A", "B", "C", "D"];
+  const CHEERS = [
+    "答對了！六六的鰓開心到在抖抖抖～",
+    "好厲害！六六要給你一個黏黏的擊掌。",
+    "完全正確！你比六六還會找重點。",
+    "答對！六六在水裡轉了三圈慶祝。"
+  ];
+
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const liu = (cls = "", happy = false) => `<img class="${cls}" src="${happy ? "liu-happy.png" : "liu.png"}" alt="">`;
+  const art = (id) => S.content.articles.find((a) => a.id === id);
+  const rec = (id) => S.records[id] || {};
+  const readerName = () => { const r = S.readers.find((x) => x.id === S.reader); return r ? r.name : ""; };
+  const store = {
+    get() { try { return localStorage.getItem("reader"); } catch (e) { return null; } },
+    set(v) { try { localStorage.setItem("reader", v); } catch (e) {} }
+  };
+  const recPath = (aid) => `readers/${S.reader}/records/${aid}`;
+
+  // stable shuffle of options so answers are spread across A–D
+  function perm(aid, qi) {
+    let h = 2166136261;
+    for (const ch of aid + "-" + qi) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+    let t = h >>> 0;
+    const rnd = () => { t += 0x6D2B79F5; let r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; };
+    const p = [0, 1, 2, 3];
+    for (let i = 3; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; }
+    return p;
+  }
+
+  // ---------- records ----------
+  const queues = {};
+  let writeWarned = false;
+  function save(aid, patch) {
+    const cur = { ...rec(aid), ...patch, updatedAt: new Date().toISOString() };
+    S.records[aid] = cur;
+    if (!S.db || S.dbState === "readonly" || !S.reader) return;
+    const path = recPath(aid);
+    const body = JSON.parse(JSON.stringify(cur));
+    queues[path] = (queues[path] || Promise.resolve()).then(() =>
+      S.db.doc(path).set(body).catch((e) => {
+        if (e && e.code === "invalid_argument") S.dbState = "readonly";
+        if (!writeWarned) { writeWarned = true; showBanner("warn", "這次的作答沒有存成功。可以繼續作答，等一下重新整理頁面再試試看。"); }
+      })
+    );
+  }
+
+  function phase(aid) {
+    const r = rec(aid);
+    if (r.second) return "done";
+    if (r.first) return r.first.correct.every(Boolean) ? "done" : "retry";
+    return "answer";
+  }
+  function firstScore(aid) { const r = rec(aid); return r.first ? r.first.correct.filter(Boolean).length : null; }
+  function isDone(aid) { return !!rec(aid).doneAt; }
+
+  function showBanner(kind, text) {
+    banner.hidden = false;
+    banner.className = "note" + (kind === "warn" ? " warn" : "");
+    banner.textContent = text;
+  }
+
+  // ---------- views ----------
+  function render(scroll = true) {
+    if (!S.content) return;
+    const h = (location.hash || "#home").slice(1);
+    document.querySelectorAll("#nav a").forEach((a) => a.toggleAttribute("aria-current", false));
+    document.getElementById("brand-name").textContent = S.reader ? `${readerName()} 的讀報小站` : "讀報小站";
+    document.title = S.reader ? `${readerName()} 的讀報小站` : "讀報小站";
+    if (h === "who" || !S.reader) { setNav("who"); renderWho(); }
+    else if (h === "footprints") { setNav("footprints"); renderFootprints(); }
+    else if (art(h)) { renderArticle(h); }
+    else { setNav("home"); renderHome(); }
+    if (scroll) window.scrollTo(0, 0);
+  }
+  function renderWho() {
+    app.innerHTML = `
+      <section class="hello">
+        ${liu("", true)}
+        <div class="say"><p class="bubble">${!S.reader && (location.hash || "#home") !== "#who" ? "要先點自己的名字，六六才知道要拿出誰的閱讀紀錄喔！" : "今天是誰來讀報呀？點自己的名字，六六就會拿出你的閱讀紀錄。"}</p></div>
+      </section>
+      <section class="grid">
+        ${S.readers.map((r) => `<button type="button" class="card who ${r.id === S.reader ? "current" : ""}" data-act="pick-reader" data-r="${esc(r.id)}">
+          <h3>${esc(r.name)}</h3><span class="status">${r.id === S.reader ? "現在是你在讀" : "點這裡開始"}</span></button>`).join("")}
+      </section>
+      <section class="panel">
+        <h2>新增讀者</h2>
+        <p class="empty">每位讀者有自己的紀錄，互相不會蓋掉。</p>
+        <div class="actions">
+          <input id="new-reader" type="text" maxlength="12" placeholder="輸入名字" aria-label="新讀者的名字">
+          <button class="btn" type="button" data-act="add-reader">加入</button>
+        </div>
+      </section>`;
+  }
+  function setReader(id) {
+    if (S.reader === id) return;
+    S.reader = id; store.set(id);
+    S.records = {}; S.ui = {};
+    subscribeRecords();
+    if (S.db) S.db.doc("meta/readers").set({ list: S.readers, last: id }).catch(() => {});
+  }
+  function subscribeRecords() {
+    if (S.unsub) { try { S.unsub(); } catch (e) {} S.unsub = null; }
+    if (!S.db || !S.reader) return;
+    const rid = S.reader;
+    const timer = setTimeout(() => { if (S.dbState === "loading") showBanner("info", "紀錄還在連線中，可以先開始作答。"); }, 10000);
+    S.unsub = S.db.collection(`readers/${rid}/records`).onSnapshot((snap) => {
+      if (rid !== S.reader) return;
+      const next = {};
+      snap.docs.forEach((d) => { next[d.id] = d.data(); });
+      S.records = { ...S.records, ...next };
+      if (!snap.metadata.fromCache) { clearTimeout(timer); if (S.dbState === "loading") { S.dbState = "ok"; if (!writeWarned) banner.hidden = true; } }
+      const h = (location.hash || "#home").slice(1);
+      if (!art(h)) render(false);
+      else if (S.ui[h] && !S.ui[h].touched && !(document.activeElement && document.activeElement.tagName === "TEXTAREA")) { delete S.ui[h]; renderArticle(h); }
+    }, () => { clearTimeout(timer); S.dbState = "off"; showBanner("warn", "紀錄連線中斷了，作答可以繼續，但可能不會被保存。"); });
+  }
+  function setNav(k) { const a = document.querySelector(`#nav a[data-nav="${k}"]`); if (a) a.setAttribute("aria-current", "page"); }
+
+  const src = (a) => a.source || "少年報導者";
+  function renderHome() {
+    const list = S.content.articles;
+    const done = list.filter((a) => isDone(a.id)).length;
+    const next = list.find((a) => !isDone(a.id));
+    const say = done === 0 ? `嗨 ${readerName()}！我是六六。我們一起讀新聞吧，先挑一篇你有興趣的！`
+      : done === list.length ? `${list.length} 篇全部完成！六六宣布你是本池塘的讀報冠軍。`
+      : `嗨 ${readerName()}！你已經讀完 ${done} 篇了。${next ? `要不要試試「${next.category}」？` : ""}`;
+    app.innerHTML = `
+      <section class="hello">
+        ${liu("", true)}
+        <div class="say">
+          <p class="bubble">${esc(say)}</p>
+          <div class="progress">
+            <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${list.length}" aria-valuenow="${done}"><i style="width:${(done / list.length) * 100}%"></i></div>
+            <small>已完成 ${done}／${list.length} 篇</small>
+          </div>
+        </div>
+      </section>
+      <section class="grid">
+        ${list.map((a) => {
+          const r = rec(a.id); const fs = firstScore(a.id);
+          const st = isDone(a.id) ? `<span class="status done">完成 ✓</span>`
+            : (r.predict || r.readAt || r.first) ? `<span class="status doing">進行中</span>`
+            : `<span class="status">還沒開始</span>`;
+          return `<a class="card" href="#${a.id}">
+            <div class="row"><span class="chip">${esc(a.category)}</span>${st}</div>
+            <h3 ${a.lang === "en" ? 'lang="en"' : ""}>${esc(a.title)}</h3>
+            ${a.source ? `<small class="src">《${esc(a.source)}》</small>` : ""}
+            ${fs !== null ? `<span class="status">第一次答對 ${fs}／5</span>` : ""}
+          </a>`;
+        }).join("")}
+      </section>`;
+  }
+
+  function ui(aid) {
+    if (!S.ui[aid]) {
+      const r = rec(aid);
+      let step = 1;
+      if (r.doneAt || (r.open && r.open.length)) step = 4;
+      else if (r.first) step = phase(aid) === "done" ? 4 : 3;
+      else if (r.readAt) step = 3;
+      else if (r.predict) step = 2;
+      S.ui[aid] = { step, picks: {}, draft: "", thinking: false, gloss: null, cheer: null };
+    }
+    return S.ui[aid];
+  }
+
+  function renderArticle(aid) {
+    const a = art(aid); const u = ui(aid); const r = rec(aid);
+    const en = a.lang === "en";
+    const steps = [
+      ["猜一猜", r.predict ? "✓" : ""],
+      ["讀文章", r.readAt ? "✓" : ""],
+      ["選擇題", r.first ? `${firstScore(aid)}/5` : ""],
+      ["說說看", r.open && r.open.length ? "✓" : ""]
+    ];
+    app.innerHTML = `
+      <a class="back" href="#home">← 回到文章列表</a>
+      <div class="head">
+        <span class="chip" style="align-self:flex-start">${esc(a.category)}</span>
+        <h1 ${en ? 'lang="en"' : ""}>${esc(a.title)}</h1>
+      </div>
+      <nav class="steps" aria-label="步驟">
+        ${steps.map(([t, s], i) => `<button type="button" data-act="step" data-step="${i + 1}" ${u.step === i + 1 ? 'aria-current="step"' : ""} class="${s ? "ok" : ""}">${i + 1}. ${t}${s ? `<small>${s}</small>` : ""}</button>`).join("")}
+      </nav>
+      <section class="panel" id="panel">${[stepPredict, stepRead, stepQuiz, stepOpen][u.step - 1](a, u, r)}</section>`;
+  }
+
+  function stepPredict(a, u, r) {
+    const en = a.lang === "en";
+    if (u.predictChoice === undefined) u.predictChoice = r.predictChoice !== undefined ? r.predictChoice : (r.predict ? "other" : null);
+    const choice = u.predictChoice;
+    return `
+      <div class="guide">${liu()}<h2>讀之前，先猜猜看</h2></div>
+      <p ${en ? 'lang="en"' : ""}>${esc(a.predict)}</p>
+      <p class="empty">選一個你覺得最可能的答案。猜錯也沒關係，讀完再來對對看！</p>
+      <div class="opts" ${en ? 'lang="en"' : ""}>
+        ${(a.predictOptions || []).map((o, i) => `<button type="button" class="opt ${choice === i ? "picked" : ""}" data-act="predict-pick" data-o="${i}"><span class="k">${KEYS[i]}</span><span>${esc(o)}</span><span></span></button>`).join("")}
+        <button type="button" class="opt ${choice === "other" ? "picked" : ""}" data-act="predict-pick" data-o="other"><span class="k">✎</span><span>${en ? "Other: I have my own idea（其他：我有自己的想法）" : "其他：我有自己的想法"}</span><span></span></button>
+      </div>
+      ${choice === "other" ? `<label for="predict-${a.id}" class="empty">寫下你自己的猜測</label>
+      <textarea id="predict-${a.id}" data-field="predict">${esc(r.predictChoice === "other" || (r.predict && r.predictChoice === undefined) ? r.predict || "" : "")}</textarea>` : ""}
+      <h3>${en ? "Words to know 先認識這些字" : "先認識這些詞"}</h3>
+      <div class="vocab">${a.vocab.map((v) => `<div><b ${en ? 'lang="en"' : ""}>${esc(v.w)}</b><span>${esc(v.m)}</span></div>`).join("")}</div>
+      <div class="actions"><button class="btn" type="button" data-act="predict-next">下一步：讀文章 →</button></div>`;
+  }
+
+  function stepRead(a, u, r) {
+    if (a.lang === "en" && a.easy) {
+      const E = a.easy;
+      const para = (p) => esc(p).replace(/\[\[(.+?)\]\]/g, (m, w) => {
+        const open = u.gloss === w;
+        return `<button type="button" class="gloss" data-act="gloss" data-w="${esc(w)}" aria-expanded="${open}">${esc(w)}</button>${open ? `<span class="gloss-pop" lang="zh-Hant">${esc(E.glossary[w] || "")}</span>` : ""}`;
+      });
+      return `
+        <div class="guide">${liu()}<p>${esc(E.note)}</p></div>
+        <article class="easy" lang="en">
+          <h3>${esc(E.title)}</h3>
+          ${E.paragraphs.map((p) => `<p>${para(p)}</p>`).join("")}
+        </article>
+        <div class="tip">想挑戰看看嗎？<a href="${esc(a.url)}" target="_blank" rel="noopener">打開英文原文</a>，看看你能讀懂多少。原文比較難，讀不完也沒關係！</div>
+        <div class="actions"><button class="btn" type="button" data-act="read-done">我讀完了，去做題目 →</button></div>`;
+    }
+    return `
+      <div class="guide">${liu()}<h2>去《${esc(src(a))}》讀文章</h2></div>
+      <p>按下面的按鈕，文章會在新分頁打開。慢慢讀，讀完再回到這裡。</p>
+      ${a.tip ? `<div class="tip">${esc(a.tip)}</div>` : ""}
+      <div class="actions">
+        <a class="btn" href="${esc(a.url)}" target="_blank" rel="noopener">打開文章 ↗</a>
+        <button class="btn ghost" type="button" data-act="read-done">我讀完了，去做題目 →</button>
+      </div>
+      <p class="empty">小提醒：做題目的時候，可以隨時回去文章找答案喔。</p>`;
+  }
+
+  function stepQuiz(a, u, r) {
+    const ph = phase(a.id);
+    const en = a.lang === "en";
+    const L = S.content.levels;
+    const qs = a.questions.map((q, qi) => {
+      const p = perm(a.id, qi);
+      const firstPick = r.first ? r.first.answers[qi] : null;
+      const firstOk = r.first ? r.first.correct[qi] : null;
+      const secondPick = r.second ? r.second.answers[qi] : undefined;
+      let opts, after = "";
+      if (ph === "answer") {
+        opts = p.map((oi, k) => `<button type="button" class="opt ${u.picks[qi] === oi ? "picked" : ""}" data-act="pick" data-q="${qi}" data-o="${oi}"><span class="k">${KEYS[k]}</span><span>${esc(q.options[oi])}</span><span></span></button>`).join("");
+      } else if (ph === "retry" && !firstOk) {
+        opts = p.map((oi, k) => {
+          if (oi === firstPick) return `<button type="button" class="opt wrong" disabled><span class="k">${KEYS[k]}</span><span>${esc(q.options[oi])}</span><span class="mark">第一次選的</span></button>`;
+          return `<button type="button" class="opt ${u.picks[qi] === oi ? "picked" : ""}" data-act="pick" data-q="${qi}" data-o="${oi}"><span class="k">${KEYS[k]}</span><span>${esc(q.options[oi])}</span><span></span></button>`;
+        }).join("");
+        after = `<div class="hint">再找找看！答案藏在：「${esc(q.where)}」這裡。</div>`;
+      } else {
+        opts = p.map((oi, k) => {
+          let cls = "", mark = "";
+          if (oi === q.answer) { cls = "right"; mark = "正確答案"; }
+          else if (oi === firstPick || oi === secondPick) { cls = "wrong"; mark = "你選的"; }
+          return `<button type="button" class="opt ${cls}" disabled><span class="k">${KEYS[k]}</span><span>${esc(q.options[oi])}</span><span class="mark">${mark}</span></button>`;
+        }).join("");
+        const tag = firstOk ? "第一次就答對！" : secondPick === q.answer ? "再試一次就答對了！" : "這題比較難，看看解析吧。";
+        after = `<div class="explain"><b>${tag}</b><span ${en ? 'lang="en"' : ""}>${esc(q.why)}</span><span class="where">答案在：「${esc(q.where)}」</span></div>`;
+      }
+      return `<div class="q">
+        <div class="meta"><b>第 ${qi + 1} 題</b><span class="lv">${esc(L[q.level])}</span></div>
+        <p class="stem" ${en ? 'lang="en"' : ""}>${esc(q.q)}</p>
+        <div class="opts" ${en ? 'lang="en"' : ""}>${opts}</div>${after}</div>`;
+    }).join("");
+
+    let top, bottom;
+    if (ph === "answer") {
+      const n = Object.keys(u.picks).length;
+      top = `<div class="guide">${liu()}<p>5 題都選好以後再送出。不確定的話，可以回去文章找一找！</p></div>`;
+      bottom = `<div class="actions"><button class="btn" type="button" data-act="submit1" ${n < 5 ? "disabled" : ""}>送出答案（已選 ${n}／5）</button></div>`;
+    } else if (ph === "retry") {
+      const wrong = a.questions.map((_, qi) => qi).filter((qi) => !r.first.correct[qi]);
+      const n = wrong.filter((qi) => u.picks[qi] !== undefined).length;
+      top = `<div class="guide">${liu()}<p class="score">第一次答對 ${firstScore(a.id)}／5 題！還有 ${wrong.length} 題可以再試一次，六六幫你標出答案藏在哪裡了。</p></div>`;
+      bottom = `<div class="actions"><button class="btn" type="button" data-act="submit2" ${n < wrong.length ? "disabled" : ""}>再送出一次（已選 ${n}／${wrong.length}）</button></div>`;
+    } else {
+      const fs = firstScore(a.id);
+      const fixed = r.second ? Object.keys(r.second.correct).filter((k) => r.second.correct[k]).length : 0;
+      const line = fs === 5 ? "5 題全對！六六要把你的名字刻在石頭上。" : `第一次答對 ${fs} 題${fixed ? `，再試一次又答對 ${fixed} 題` : ""}。下面是每一題的解析。`;
+      top = `<div class="guide">${liu("", true)}<p class="score">${esc(u.cheer || line)}</p></div>`;
+      bottom = `<div class="actions"><button class="btn" type="button" data-act="step" data-step="4">下一步：說說看 →</button></div>`;
+    }
+    return top + qs + bottom;
+  }
+
+  function stepOpen(a, u, r) {
+    const hist = r.open || [];
+    const en = a.lang === "en";
+    const convo = hist.map((h) => `
+      <p class="mine">${esc(h.answer)}</p>
+      <div class="liu">${liu("", true)}<div>${h.feedback ? esc(h.feedback).replace(/\n/g, "<br>") : "（這次六六沒辦法回覆，不過你的答案已經存起來了。）"}</div></div>`).join("");
+    const thinking = u.thinking ? `<p class="mine">${esc(u.draft)}</p><div class="liu thinking">${liu()}<div>六六正在認真讀你的答案⋯⋯</div></div>` : "";
+    const done = isDone(a.id);
+    const idx = S.content.articles.findIndex((x) => x.id === a.id);
+    const next = S.content.articles.slice(idx + 1).concat(S.content.articles.slice(0, idx)).find((x) => !isDone(x.id));
+    return `
+      <div class="guide">${liu()}<h2>說說你的想法</h2></div>
+      <p ${en ? 'lang="en"' : ""}>${esc(a.open.q)}</p>
+      <div class="reply">${convo}${thinking}</div>
+      ${u.thinking ? "" : `
+        <label for="open-${a.id}" class="empty">${hist.length ? "想補充或修改嗎？可以再寫一次給六六看。" : "沒有標準答案，寫出你自己的想法就好。"}</label>
+        <textarea id="open-${a.id}" data-field="draft">${esc(u.draft)}</textarea>
+        <div class="actions">
+          <button class="btn" type="button" data-act="send-open">送給六六看</button>
+          ${!done ? `<button class="btn ghost" type="button" data-act="finish">${hist.length ? "完成這篇！" : "這次先不寫，完成這篇"}</button>` : ""}
+        </div>`}
+      ${done ? `<div class="celebrate">${liu("", true)}<p class="score">這篇完成了！六六好以你為榮。</p>
+        <div class="actions" style="justify-content:center">${next ? `<a class="btn" href="#${next.id}">下一篇：${esc(next.category)} →</a>` : ""}<a class="btn ghost" href="#home">回到文章列表</a></div></div>` : ""}`;
+  }
+
+  function renderFootprints() {
+    const list = S.content.articles;
+    const L = S.content.levels, LF = S.content.levelsFull;
+    const tally = {}; Object.keys(L).forEach((k) => (tally[k] = { ok: 0, n: 0 }));
+    let answered = 0, okAll = 0;
+    list.forEach((a) => {
+      const r = rec(a.id); if (!r.first) return;
+      a.questions.forEach((q, qi) => { tally[q.level].n++; answered++; if (r.first.correct[qi]) { tally[q.level].ok++; okAll++; } });
+    });
+    const done = list.filter((a) => isDone(a.id)).length;
+    const openCount = list.reduce((s, a) => s + ((rec(a.id).open || []).length ? 1 : 0), 0);
+    const levels = Object.keys(L).map((k) => {
+      const t = tally[k]; const pct = t.n ? Math.round((t.ok / t.n) * 100) : 0;
+      return `<div class="level"><div><b>${esc(L[k])}</b><small>${esc(LF[k])}</small></div>
+        <div class="bar" role="img" aria-label="${esc(L[k])} 答對 ${t.ok} 題，共 ${t.n} 題"><i style="width:${pct}%"></i></div>
+        <span class="num">${t.n ? `${t.ok}/${t.n}` : "—"}</span></div>`;
+    }).join("");
+    const recs = list.map((a) => {
+      const r = rec(a.id); const en = a.lang === "en";
+      const fs = firstScore(a.id);
+      const st = isDone(a.id) ? "完成" : (r.predict || r.readAt || r.first) ? "進行中" : "還沒開始";
+      const misses = r.first ? a.questions.map((q, qi) => {
+        if (r.first.correct[qi]) return "";
+        const sec = r.second ? r.second.answers[qi] : undefined;
+        return `<div class="miss" ${en ? 'lang="en"' : ""}><b>第 ${qi + 1} 題（${esc(L[q.level])}）</b><span>${esc(q.q)}</span>
+          <span>第一次選：${esc(q.options[r.first.answers[qi]])}</span>
+          ${sec !== undefined ? `<span>第二次選：${esc(q.options[sec])}${sec === q.answer ? "（答對了）" : ""}</span>` : ""}
+          <span>正確答案：${esc(q.options[q.answer])}</span></div>`;
+      }).join("") : "";
+      const opens = (r.open || []).map((h) => `<p class="mine">${esc(h.answer)}</p><div class="liu">${liu("", true)}<div>${h.feedback ? esc(h.feedback).replace(/\n/g, "<br>") : "（沒有回覆）"}</div></div>`).join("");
+      return `<details class="rec">
+        <summary><div class="t"><span class="chip" style="align-self:flex-start">${esc(a.category)}</span><span ${en ? 'lang="en"' : ""}>${esc(a.title)}</span></div>
+          <span class="status ${isDone(a.id) ? "done" : ""}">${st}${fs !== null ? ` · ${fs}/5` : ""}</span></summary>
+        <div class="body">
+          ${r.predict ? `<h4>讀之前的猜測</h4><p class="mine" style="align-self:flex-start">${esc(r.predict)}</p>` : ""}
+          <h4>選擇題</h4>
+          ${r.first ? (misses || `<p class="empty">5 題第一次就全對！</p>`) : `<p class="empty">還沒有作答。</p>`}
+          <h4>說說看</h4>
+          <p ${en ? 'lang="en"' : ""}>${esc(a.open.q)}</p>
+          ${opens ? `<div class="reply">${opens}</div>` : `<p class="empty">還沒有回答。</p>`}
+          <details class="ref"><summary>回答的參考方向</summary><p>${esc(a.open.ref)}</p></details>
+        </div></details>`;
+    }).join("");
+    app.innerHTML = `
+      <div class="guide">${liu("", true)}<div><h1>我的閱讀足跡</h1><p class="empty">每讀完一篇，就留下一個腳印。</p></div></div>
+      <section class="stats">
+        <div class="stat"><b>${done}／${list.length}</b><span>讀完的文章</span></div>
+        <div class="stat"><b>${answered ? Math.round((okAll / answered) * 100) + "%" : "—"}</b><span>選擇題第一次答對</span></div>
+        <div class="stat"><b>${openCount}</b><span>寫給六六的想法</span></div>
+      </section>
+      <section class="panel">
+        <h2>四種閱讀能力</h2>
+        <p class="empty">只算第一次作答。數字愈接近滿分，代表這種讀法愈熟練。</p>
+        <div class="levels">${levels}</div>
+      </section>
+      <section style="display:flex;flex-direction:column;gap:14px">
+        <h2>每一篇的紀錄</h2>
+        ${recs}
+      </section>
+      ${S.downloads ? `<section class="actions"><button class="btn ghost" type="button" data-act="export">下載紀錄備份（JSON）</button><span class="empty" id="export-msg"></span></section>` : ""}`;
+  }
+
+  // ---------- actions ----------
+  app.addEventListener("input", (e) => {
+    const f = e.target.dataset && e.target.dataset.field;
+    const aid = (location.hash || "").slice(1);
+    if (!f || !art(aid)) return;
+    if (f === "draft") ui(aid).draft = e.target.value;
+  });
+  app.addEventListener("change", (e) => {
+    const aid = (location.hash || "").slice(1);
+    if (e.target.dataset && e.target.dataset.field === "predict" && art(aid)) {
+      const v = e.target.value.trim();
+      if (v !== (rec(aid).predict || "") || rec(aid).predictChoice !== "other") save(aid, { predict: v, predictChoice: "other" });
+    }
+  });
+
+  app.addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-act]"); if (!b) return;
+    const act = b.dataset.act;
+    const aid = (location.hash || "").slice(1);
+    const a = art(aid);
+    if (act === "pick-reader") {
+      const id = b.dataset.r;
+      if (S.readers.some((r) => r.id === id)) { setReader(id); if (location.hash === "#home") render(); else location.hash = "#home"; }
+      return;
+    }
+    if (act === "add-reader") {
+      const inp = document.getElementById("new-reader");
+      const name = (inp && inp.value || "").trim().slice(0, 12);
+      if (!name) { if (inp) inp.focus(); return; }
+      const ex = S.readers.find((r) => r.name === name);
+      if (!ex) {
+        S.readers = S.readers.concat([{ id: "r" + Date.now().toString(36), name }]);
+        if (S.db) S.db.doc("meta/readers").set({ list: S.readers, last: S.reader || S.lastReader || null }).catch(() => showBanner("warn", "新讀者沒有存成功，等一下重新整理再試試看。"));
+      }
+      renderWho();
+      return;
+    }
+    if (act === "export") return doExport();
+    if (!a) return;
+    const u = ui(aid);
+    u.touched = true;
+    if (act === "step") { u.step = +b.dataset.step; u.cheer = null; renderArticle(aid); window.scrollTo(0, 0); return; }
+    if (act === "predict-pick") {
+      const o = b.dataset.o === "other" ? "other" : +b.dataset.o;
+      u.predictChoice = o;
+      if (o !== "other") save(aid, { predict: a.predictOptions[o], predictChoice: o });
+      const y = window.scrollY; renderArticle(aid); window.scrollTo(0, y);
+      if (o === "other") { const t = document.getElementById("predict-" + aid); if (t) t.focus(); }
+      return;
+    }
+    if (act === "predict-next") {
+      const t = document.getElementById("predict-" + aid);
+      if (u.predictChoice === "other" && t) {
+        const v = t.value.trim();
+        if (v !== (rec(aid).predict || "") || rec(aid).predictChoice !== "other") save(aid, { predict: v, predictChoice: "other" });
+      }
+      u.step = 2; renderArticle(aid); window.scrollTo(0, 0); return;
+    }
+    if (act === "gloss") { u.gloss = u.gloss === b.dataset.w ? null : b.dataset.w; const y = window.scrollY; renderArticle(aid); window.scrollTo(0, y); return; }
+    if (act === "read-done") {
+      if (!rec(aid).readAt) save(aid, { readAt: new Date().toISOString() });
+      u.step = 3; renderArticle(aid); window.scrollTo(0, 0); return;
+    }
+    if (act === "pick") { u.picks[+b.dataset.q] = +b.dataset.o; const y = window.scrollY; renderArticle(aid); window.scrollTo(0, y); return; }
+    if (act === "submit1") {
+      const answers = a.questions.map((_, qi) => u.picks[qi]);
+      if (answers.some((x) => x === undefined)) return;
+      const correct = a.questions.map((q, qi) => answers[qi] === q.answer);
+      save(aid, { first: { answers, correct, at: new Date().toISOString() } });
+      u.picks = {};
+      u.cheer = correct.every(Boolean) ? CHEERS[Math.floor(Math.random() * CHEERS.length)] + " 5 題全對！" : null;
+      renderArticle(aid); window.scrollTo(0, 0); return;
+    }
+    if (act === "submit2") {
+      const r = rec(aid);
+      const wrong = a.questions.map((_, qi) => qi).filter((qi) => !r.first.correct[qi]);
+      if (wrong.some((qi) => u.picks[qi] === undefined)) return;
+      const answers = {}, correct = {};
+      wrong.forEach((qi) => { answers[qi] = u.picks[qi]; correct[qi] = u.picks[qi] === a.questions[qi].answer; });
+      save(aid, { second: { answers, correct, at: new Date().toISOString() } });
+      u.picks = {};
+      const n = Object.values(correct).filter(Boolean).length;
+      u.cheer = n === wrong.length ? CHEERS[Math.floor(Math.random() * CHEERS.length)] : n ? `又答對了 ${n} 題！剩下的看看解析，下次一定更厲害。` : "沒關係，難題才好玩！看看解析，六六陪你一起想。";
+      renderArticle(aid); window.scrollTo(0, 0); return;
+    }
+    if (act === "send-open") {
+      const t = document.getElementById("open-" + aid);
+      const answer = (t ? t.value : u.draft).trim();
+      if (!answer) { t && t.focus(); return; }
+      u.draft = answer; u.thinking = true; renderArticle(aid);
+      const feedback = await askLiu(a, answer);
+      const hist = (rec(aid).open || []).concat([{ answer, feedback, at: new Date().toISOString() }]).slice(-5);
+      save(aid, { open: hist });
+      u.thinking = false; u.draft = "";
+      if ((location.hash || "").slice(1) === aid) renderArticle(aid);
+      return;
+    }
+    if (act === "finish") { save(aid, { doneAt: new Date().toISOString() }); renderArticle(aid); return; }
+  });
+
+  // 六六的幽默方式：每次隨機挑一種，避免老是同一個梗
+  const HUMOR = [
+    "把文章的主題接到六六的水中生活，例如六六試著在水族箱裡做文章裡的事，結果有點狼狽。",
+    "六六小小自嘲一下，例如承認自己剛剛也想錯、看到睡著、或被題目考倒。",
+    "用一個好笑又貼切的比喻，形容對方的想法（例如像拼圖、像偵探、像廚師）。",
+    "六六誇張地吃驚或佩服，例如差點把嘴裡的小蟲噴出來、驚訝到浮上水面。",
+    "用六角恐龍的冷知識開個小玩笑：六角恐龍會再生、臉看起來永遠在微笑、外鰓像羽毛、老家在墨西哥的湖裡。",
+    "跟對方約一個好玩的小任務或小約定，例如下次換六六出題考你。",
+    "這次不用搞笑，用一句真心、溫暖的話就好。"
+  ];
+  async function askLiu(a, answer) {
+    if (!S.sample) return null;
+    const who = readerName();
+    const humor = HUMOR[Math.floor(Math.random() * HUMOR.length)];
+    const recent = Object.values(S.records).flatMap((r) => r.open || [])
+      .filter((o) => o && o.feedback).sort((x, y) => String(y.at).localeCompare(String(x.at)))
+      .slice(0, 3).map((o) => "  · " + String(o.feedback).slice(0, 80)).join("\n");
+    const langRule = a.lang === "en"
+      ? `如果${who}用英文回答，就用簡單英文（劍橋 Flyers 程度）回饋，最後可以附一句中文；如果用中文回答，就用繁體中文回饋。`
+      : "用繁體中文回饋，用台灣小朋友熟悉的說法。";
+    const prompt = `你是「六六」，一隻可愛、溫暖、有一點點搞笑的 Q 版六角恐龍，在一個兒童新聞閱讀網站陪國小中高年級的小朋友「${who}」 練習閱讀。${who} 剛讀完一篇新聞，回答了一題開放題。請依照「回饋參考」給${who}回饋。
+
+規則：
+- 2 到 3 句。中文回饋不超過 90 個字；英文回饋不超過 50 個英文字。
+- 先具體稱讚${who}回答裡做得好的一點，要提到${who}寫的內容。
+- 再用一個小問題或提示，幫${who}把想法想得更完整。不要直接給答案，不要打分數，不要說${who}錯了。
+- 語氣溫暖。這次的幽默方式：${humor}
+- 幽默只用一小句，要自然，跟${who}的回答或這篇文章有關；不要用表情符號，也不要每次都講「鰓開心地搖一搖」這種老梗。
+${recent ? `- 下面是六六最近說過的話，這次不要重複一樣的笑點或句型：\n${recent}\n` : ""}- 如果回答很短或跟題目無關，溫和地鼓勵${who}多寫一點，並給一個具體的方向。
+- ${langRule}
+- 只輸出要對 ${who} 說的話，不要加標題、引號或說明。
+
+文章：《${a.title}》
+題目：${a.open.q}
+回饋參考（${who} 看不到）：
+${a.open.ref}
+
+${who} 的回答：
+${answer}`;
+    try {
+      const { text } = await S.sample(prompt, { modelTier: "default", effort: "low" });
+      return text.trim();
+    } catch (e) {
+      const c = e && e.code;
+      if (c === "not_granted" || c === "sampling_disabled" || c === "not_declared" || c === "capability_disabled" || c === "capability_removed") {
+        S.sample = null;
+        showBanner("info", "六六的回饋功能沒有開啟。答案還是會存起來，之後可以在「我的閱讀足跡」看到。");
+      } else if (c === "rate_limited") {
+        showBanner("warn", "六六有點忙，等一下再送一次就好。");
+      }
+      return null;
+    }
+  }
+
+  async function doExport() {
+    const msg = document.getElementById("export-msg");
+    try {
+      const d = new Date();
+      const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+      await S.downloads.save({
+        filename: `reading-records-${S.reader}-${stamp}.json`,
+        data: JSON.stringify({ exportedAt: d.toISOString(), reader: { id: S.reader, name: readerName() }, contentVersion: S.content.version, articles: S.content.articles.map((a) => ({ id: a.id, title: a.title, url: a.url })), records: S.records }, null, 2)
+      });
+      if (msg) msg.textContent = "已下載。";
+    } catch (e) {
+      if (msg) msg.textContent = e && e.code === "declined" ? "" : "這次沒有下載成功，等一下再試。";
+    }
+  }
+
+  // ---------- boot ----------
+  { const saved = store.get(); if (saved) S.reader = saved; }
+  window.addEventListener("hashchange", render);
+  fetch("content.json").then((r) => r.json()).then((c) => { S.content = c; render(); })
+    .catch(() => { app.innerHTML = `<p class="note warn">文章資料讀取失敗，請重新整理頁面。</p>`; });
+
+  (async () => {
+    const C = window.claude;
+    if (!C || !C.use) { S.dbState = "off"; showBanner("warn", "現在沒有連上紀錄功能（請在登入 claude.ai 的狀態下打開），這次的作答不會被保存。"); return; }
+    const [db, sample, downloads] = await Promise.all([C.use("db"), C.use("sample"), C.use("downloads")]);
+    S.sample = sample; S.downloads = downloads;
+    if (!db) { S.dbState = "off"; showBanner("warn", "現在沒有連上紀錄功能（請在登入 claude.ai 的狀態下打開），這次的作答不會被保存。"); render(false); return; }
+    S.db = db;
+    db.doc("meta/readers").onSnapshot((d) => {
+      const list = d.exists && d.data() && Array.isArray(d.data().list) ? d.data().list.filter((r) => r && r.id && r.name) : [];
+      if (list.length) S.readers = list;
+      const last = d.exists && d.data() ? d.data().last : null;
+      if (last) S.lastReader = last;
+      if (S.reader && !S.readers.some((r) => r.id === S.reader)) { S.reader = null; }
+      const h = (location.hash || "#home").slice(1);
+      if (!S.reader) {
+        const pick = S.readers.some((r) => r.id === last) ? last : S.readers.length === 1 ? S.readers[0].id : null;
+        if (pick) { S.reader = pick; store.set(pick); subscribeRecords(); if (h === "who") location.hash = "#home"; else render(false); return; }
+      }
+      if (h === "who" || !S.reader) render(false);
+    }, () => {});
+    subscribeRecords();
+    if (S.content) { const h = (location.hash || "#home").slice(1); if (!art(h)) render(false); }
+  })();
+})();
+</script>
